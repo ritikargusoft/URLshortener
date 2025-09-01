@@ -1,5 +1,6 @@
 import express from "express";
 import { shortenerRoutes } from "./routes/shortener.routes.js";
+import { authRoutes } from "./routes/auth.routes.js";
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.set("view engine", "ejs");
 
 // express router
 // app.use(router);
+app.use(authRoutes)
 app.use(shortenerRoutes);
 
 app.listen(PORT, () => {
