@@ -15,6 +15,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.5",
     "ejs": "^3.1.10",
