@@ -3,7 +3,13 @@ import * as authControllers from "../controllers/authController.js";
 
 const router = Router();
 
-router.get("/register", authControllers.getRegisterPage);
+// router.get("/register", authControllers.getRegisterPage);
+
+router
+.route("/register")
+.get(authControllers.getRegisterPage)
+.post(authControllers.postRegister)
+
 // router.get("/login", authControllers.getLoginPage);
 // router.post("/login", authControllers.postLogin);
 
