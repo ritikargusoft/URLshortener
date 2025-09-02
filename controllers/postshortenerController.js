@@ -10,8 +10,18 @@ export const getShortenerPage = async (req, res) => {
     // const file = await readFile(path.join("views", "index.html"));
     // const links = await loadLinks();
     const links = await getAllShortLinks();
+  let isLoggedIn = req.headers.cookie;
+    isLoggedIn = Boolean(
+      isLoggedIn
+        ?.split(";")
+        ?.find((cookie) => cookie.trim().startsWith("isLoggedIn"))
+        ?.split("=")[1]
+    );
 
-    return res.render("index", { links, host: req.host });
+    console.log("🚀 ~ getShortenerPage ~ isLoggedIn:", isLoggedIn);
+
+    return res.render("index", { links, host: req.host, isLoggedIn});
+
   } catch (error) {
     console.error(error);
     return res.status(500).send("Internal server error");
