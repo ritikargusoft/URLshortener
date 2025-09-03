@@ -1,49 +1,45 @@
 body {
-  font-family: "urbanist", sans-serif;
-  background-color: #f0f4f8;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  font-family: "Urbanist", sans-serif;
+  background-color: #F0F4F8;
   margin: 0;
+  padding-top: 70px; /* leave space for fixed navbar */
 }
-
 .container {
   background-color: #fff;
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   width: 400px;
+  margin: 30px auto;
   text-align: center;
 }
-
-h1 {
+h1, h2 {
   color: #333;
   margin-bottom: 20px;
+  text-align: center;
 }
-
 form div {
   margin-bottom: 15px;
   text-align: left;
 }
-
 label {
   font-weight: 500;
   margin-bottom: 5px;
   display: block;
 }
-
 input[type="url"],
-input[type="text"] {
+input[type="text"],
+input[type="email"],
+input[type="password"] {
   width: 100%;
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
 }
-
-button {
-  background-color: #4a90e2;
+button,
+input[type="submit"] {
+  background-color: #4A90E2;
   color: #fff;
   padding: 14px 20px;
   border: none;
@@ -51,82 +47,104 @@ button {
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  width: 100%;
 }
-
-button:hover {
-  background-color: #357ac9;
+button:hover,
+input[type="submit"]:hover {
+  background-color: #357AC9;
 }
-
-h2 {
-  color: #555;
-  margin-top: 30px;
-}
-
 ul {
   list-style: none;
   padding: 0;
 }
-
 li {
-  /* background-color: #fafafa; */
   margin: 10px 0;
   padding: 12px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
-
 li a {
-  color: #4a90e2;
+  color: #4A90E2;
   text-decoration: none;
   font-weight: 500;
 }
-
 li a:hover {
   text-decoration: underline;
 }
-
 .report-section {
   display: flex;
-  text-align: center;
   flex-direction: column;
-
-  ul {
-    display: flex;
-  }
+  text-align: center;
 }
-
-/* Fixed navbar */
+.report-section ul {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+/* Navbar */
 .navbar {
   position: fixed;
   top: 0;
+  left: 0;
   width: 100%;
   background-color: #333;
   padding: 1rem;
-  z-index: 1000; /* Ensure navbar stays above content */
+  z-index: 1000;
 }
-
 .navbar-links {
   list-style: none;
   display: flex;
   justify-content: center;
+  margin: 0;
+  padding: 0;
 }
-
 .navbar-links li {
   margin: 0 20px;
 }
-
 .navbar-links a {
   color: white;
   text-decoration: none;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 500;
 }
-
 .navbar-links a:hover {
-  color: #ff6347;
+  color: #FF6347;
 }
-
-/* Section styling */
+/* Section spacing */
 .section {
   padding: 100px 20px;
-  height: 100vh; /* Each section takes full viewport height */
+  min-height: 100vh;
+}
+/* Auth forms */
+.sign-in,
+.signup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+.signin-content,
+.signup-content {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+.signin-image,
+.signup-image {
+  max-width: 250px;
+}
+.signin-image img,
+.signup-image img {
+  width: 100%;
+  border-radius: 12px;
+}
+.signup-form,
+.signin-form {
+  flex: 1;
+}
+.form-title {
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
 }
