@@ -23,6 +23,7 @@
     "drizzle-orm": "^0.44.5",
     "ejs": "^3.1.10",
     "express": "^5.0.1",
+    "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.3"
   },
   "devDependencies": {
