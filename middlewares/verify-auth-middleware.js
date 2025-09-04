@@ -1,5 +1,4 @@
-import { verifyJWTToken } from "../services/auth.service";
-
+import {verifyJWTToken} from "../services/auth.service.js"
 export const verifyAuthentication =(req,res,next)=>{
     const token = req.cookies.access_token;
 
@@ -8,7 +7,7 @@ export const verifyAuthentication =(req,res,next)=>{
         return next();
     }
     try {
-        const decodedToken = verifyJWTToken(token)
+        const decodedToken =  verifyJWTToken(token)
         req.user = decodedToken;    
         console.log(`req.user: ${req.user}`)
     } catch (error) {

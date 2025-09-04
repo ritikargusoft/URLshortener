@@ -4,13 +4,17 @@ import {
   generateToken,
   getUserByEmail,
   hashPassword,
-} from "../services/auth.service.js";
+} from '../services/auth.service.js';
 
 export const getRegisterPage = (req, res) => {
+  if (req.user) return res.redirect("/");
+
   return res.render("../views/auth/register");
 };
 
 export const postRegister = async (req, res) => {
+  if (req.user) return res.redirect("/");
+
   // console.log(req.body);
   const { name, email, password } = req.body;
 
@@ -28,14 +32,18 @@ export const postRegister = async (req, res) => {
 };
 
 export const getLoginPage = (req, res) => {
+  if (req.user) return res.redirect("/");
+
   return res.render("auth/login");
 };
 
 export const postLogin = async (req, res) => {
+  if (req.user) return res.redirect("/");
+
   const { email, password } = req.body;
 
   const user = await getUserByEmail(email);
-  console.log("user ", user);
+  console.log("user email", user);
 
   if (!user) return res.redirect("/login");
   //todo bcrypt.compare(plainTextPassword, hashedPassword);
@@ -47,11 +55,25 @@ export const postLogin = async (req, res) => {
   // res.cookie("isLoggedIn", true);
 
   const token = generateToken({
-    id:user.id,
-    name : user.name,
-    email : user.email
-  })
+    id: user.id,
+    name: user.name,
+    email: user.email,
+  });
 
-  res.cookie("access_token", token)
+  res.cookie("access_token", token);
+
   res.redirect("/");
+};
+
+// Do You Need to Set Path=/ Manually?
+//    ✅ cookie-parser and Express automatically set the path to / by default.
+
+export const getMe = (req, res) => {
+  if (!req.user) return res.send("Not logged in");
+  return res.send(`<h1>Hey ${req.user.name} - ${req.user.email}</h1>`);
+};
+
+export const logoutUser = (req, res) => {
+  res.clearCookie("access_token");
+  res.redirect("/login");
 };
