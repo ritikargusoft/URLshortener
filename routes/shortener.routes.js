@@ -3,10 +3,10 @@ import {
   postURLShortener,
   getShortenerPage,
   redirectToShortLink,
-  postShortenerEditPage,
   getShortenerEditPage,
+  postShortenerEditPage,
   deleteShortCode,
-} from "../controllers/postshortenerController.js";
+} from "../controllers/postshortener.controller.js";
 
 const router = Router();
 

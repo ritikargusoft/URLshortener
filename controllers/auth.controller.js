@@ -4,7 +4,7 @@ import {
   generateToken,
   getUserByEmail,
   hashPassword,
-} from "../services/auth.service.js";
+} from "../services/auth.services.js";
 import {
   loginUserSchema,
   registerUserSchema,

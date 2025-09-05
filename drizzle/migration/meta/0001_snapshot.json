@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "08cf5917-106d-4315-bcd0-35682fe838f6",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "e03c5256-9d14-4d4c-800f-2d966fb8cd91",
+  "prevId": "81f6c25e-00ae-498f-8975-91762adca282",
   "tables": {
     "short_link": {
       "name": "short_link",
@@ -27,48 +27,10 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "short_link_user_id_users_id_fk": {
-          "name": "short_link_user_id_users_id_fk",
-          "tableFrom": "short_link",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {
         "short_link_id": {
           "name": "short_link_id",
