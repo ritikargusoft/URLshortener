@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1756987451838,
+      "tag": "0000_solid_shaman",
+      "breakpoints": true
+    }
+  ]
+}
