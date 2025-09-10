@@ -19,7 +19,7 @@ export const shortLinksTable = mysqlTable("short_link", {
     .references(() => usersTable.id),
 });
 
-export const sessionTable = mysqlTable("sessions", {
+export const sessionsTable = mysqlTable("sessions", {
   id: int().autoincrement().primaryKey(),
   userId: int("user_id")
     .notNull()
@@ -44,7 +44,7 @@ export const usersTable = mysqlTable("users", {
 // A user can have many short links
 export const usersRelation = relations(usersTable, ({ many }) => ({
   shortLink: many(shortLinksTable),
-  session: many(sessionTable),
+  session: many(sessionsTable),
 }));
 
 // A short link belongs to a user
@@ -55,9 +55,9 @@ export const shortLinksRelation = relations(shortLinksTable, ({ one }) => ({
   }),
 }));
 
-export const sessionRelation = relations(sessionTable, ({ one }) => ({
+export const sessionRelation = relations(sessionsTable, ({ one }) => ({
   user: one(usersTable, {
-    fields: [sessionTable.userId],
+    fields: [sessionsTable.userId],
     references: [usersTable.id],
   }),
 }));

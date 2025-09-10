@@ -7,7 +7,7 @@ import {
 import { eq } from "drizzle-orm";
 import { db } from "../config/db.js";
 import {
-  sessionTable,
+  sessionsTable,
   shortLinksTable,
   usersTable,
 } from "../drizzle/schema.js";
@@ -50,7 +50,7 @@ export const comparePassword = async (password, hash) => {
 
 export const createSession = async (userId, { ip, userAgent }) => {
   const [session] = await db
-    .insert(sessionTable)
+    .insert(sessionsTable)
     .values({ userId, ip, userAgent })
     .$returningId();
 
@@ -79,8 +79,8 @@ export const verifyJWTToken = (token) => {
 export const findSessionById = async (sessionId) => {
   const [session] = await db
     .select()
-    .from(sessionTable)
-    .where(eq(sessionTable.id, sessionId));
+    .from(sessionsTable)
+    .where(eq(sessionsTable.id, sessionId));
 
   return session;
 };
@@ -131,7 +131,7 @@ export const refreshTokens = async (refreshToken) => {
 
 // clearUserSession
 export const clearUserSession = async (sessionId) => {
-  return db.delete(sessionTable).where(eq(sessionTable.id, sessionId));
+  return db.delete(sessionsTable).where(eq(sessionsTable.id, sessionId));
 };
 
 //
@@ -164,8 +164,8 @@ export const authenticateUser = async ({ req, res, user, name, email }) => {
   });
 };
 
-//get all short links
-export const getAllShortlinks = async (req, res) => {
+//getAllShortLinks
+export const getAllShortLinks = async (userId) => {
   return await db
     .select()
     .from(shortLinksTable)

@@ -1,4 +1,3 @@
-import { email } from "zod/v4";
 import {
   ACCESS_TOKEN_EXPIRY,
   REFRESH_TOKEN_EXPIRY,
@@ -12,7 +11,7 @@ import {
   createSession,
   createUser,
   findUserById,
-  getAllShortlinks,
+  getAllShortLinks,
   // generateToken,
   getUserByEmail,
   hashPassword,
@@ -134,11 +133,14 @@ export const logoutUser = async (req, res) => {
   res.redirect("/login");
 };
 
+// /getProfilePage
 export const getProfilePage = async (req, res) => {
+  if (!req.user) return res.send("Not logged in");
+
   const user = await findUserById(req.user.id);
   if (!user) return res.redirect("/login");
 
-  const userShortLinks = await getAllShortlinks();
+  const userShortLinks = await getAllShortLinks(user.id);
 
   return res.render("auth/profile", {
     user: {
