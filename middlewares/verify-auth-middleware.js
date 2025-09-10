@@ -55,6 +55,7 @@ export const verifyAuthentication = async (req, res, next) => {
         ...baseConfig,
         maxAge: ACCESS_TOKEN_EXPIRY,
       });
+      console.log("accesstoken" + ACCESS_TOKEN_EXPIRY);
 
       res.cookie("refresh_token", newRefreshToken, {
         ...baseConfig,

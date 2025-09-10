@@ -62,12 +62,14 @@ export const createAccessToken = ({ id, name, email, sessionId }) => {
   return jwt.sign({ id, name, email, sessionId }, process.env.JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRY / MILLISECONDS_PER_SECOND, //   expiresIn: "15m",
   });
+  console.log("accesstoken" + ACCESS_TOKEN_EXPIRY);
 };
 
 export const createRefreshToken = (sessionId) => {
   return jwt.sign({ sessionId }, process.env.JWT_SECRET, {
     expiresIn: REFRESH_TOKEN_EXPIRY / MILLISECONDS_PER_SECOND, //   expiresIn: "1w",
   });
+  console.log("accesstoken" + ACCESS_TOKEN_EXPIRY);
 };
 
 // verifyJWTToken
@@ -113,6 +115,7 @@ export const refreshTokens = async (refreshToken) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      isEmailValid: user.isEmailValid,
       sessionId: currentSession.id,
     };
 
@@ -146,6 +149,7 @@ export const authenticateUser = async ({ req, res, user, name, email }) => {
     id: user.id,
     name: user.name || name,
     email: user.email || email,
+    isEmailValid: user.isEmailValid,
     sessionId: session.id,
   });
 
@@ -157,6 +161,7 @@ export const authenticateUser = async ({ req, res, user, name, email }) => {
     ...baseConfig,
     maxAge: ACCESS_TOKEN_EXPIRY,
   });
+  console.log("accesstoken" + ACCESS_TOKEN_EXPIRY);
 
   res.cookie("refresh_token", refreshToken, {
     ...baseConfig,
