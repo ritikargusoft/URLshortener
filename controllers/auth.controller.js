@@ -1,5 +1,8 @@
+import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY } from "../config/constants.js";
 import {
   comparePassword,
+  createRefreshToken,
+  createSession,
   createUser,
   generateToken,
   getUserByEmail,
@@ -88,19 +91,42 @@ export const postLogin = async (req, res) => {
 
   // res.cookie("isLoggedIn", true);
 
-  const token = generateToken({
+  // const token = generateToken({
+  //   id: user.id,
+  //   name: user.name,
+  //   email: user.email,
+  // });
+
+  // res.cookie("access_token", token);
+
+  //creating a session
+  const session = await createSession(user.id,{
+    ip: req.clientIp,
+    userAgent: req.headers['user-agent']
+  })
+
+  const accessToken = createAccessToken({
     id: user.id,
     name: user.name,
     email: user.email,
-  });
+    sessionId: session.id,
+  })
 
-  res.cookie("access_token", token);
+    const refreshToken = createRefreshToken(session.id)
+    
+    const baseConfig = {httpOnly: true, secure: true};
 
+    res.cookie("access_token", accessToken,{
+      ...baseConfig,
+      maxAge: ACCESS_TOKEN_EXPIRY
+    })
+
+      res.cookie("refresh_token", accessToken,{
+      ...baseConfig,
+      maxAge: REFRESH_TOKEN_EXPIRY
+    })
   res.redirect("/");
 };
-
-// Do You Need to Set Path=/ Manually?
-//    ✅ cookie-parser and Express automatically set the path to / by default.
 
 export const getMe = (req, res) => {
   if (!req.user) return res.send("Not logged in");
