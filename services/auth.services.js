@@ -6,7 +6,11 @@ import {
 
 import { eq } from "drizzle-orm";
 import { db } from "../config/db.js";
-import { sessionTable, usersTable } from "../drizzle/schema.js";
+import {
+  sessionTable,
+  shortLinksTable,
+  usersTable,
+} from "../drizzle/schema.js";
 
 // import bcrypt from "bcrypt";
 import argon2 from "argon2";
@@ -75,8 +79,8 @@ export const verifyJWTToken = (token) => {
 export const findSessionById = async (sessionId) => {
   const [session] = await db
     .select()
-    .from(sessionsTable)
-    .where(eq(sessionsTable.id, sessionId));
+    .from(sessionTable)
+    .where(eq(sessionTable.id, sessionId));
 
   return session;
 };
@@ -127,7 +131,7 @@ export const refreshTokens = async (refreshToken) => {
 
 // clearUserSession
 export const clearUserSession = async (sessionId) => {
-  return db.delete(sessionsTable).where(eq(sessionsTable.id, sessionId));
+  return db.delete(sessionTable).where(eq(sessionTable.id, sessionId));
 };
 
 //
@@ -158,4 +162,12 @@ export const authenticateUser = async ({ req, res, user, name, email }) => {
     ...baseConfig,
     maxAge: REFRESH_TOKEN_EXPIRY,
   });
+};
+
+//get all short links
+export const getAllShortlinks = async (req, res) => {
+  return await db
+    .select()
+    .from(shortLinksTable)
+    .where(eq(shortLinksTable.userId, userId));
 };
