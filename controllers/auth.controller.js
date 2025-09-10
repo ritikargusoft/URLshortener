@@ -1,10 +1,16 @@
-import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY } from "../config/constants.js";
 import {
+  ACCESS_TOKEN_EXPIRY,
+  REFRESH_TOKEN_EXPIRY,
+} from "../config/constants.js";
+import {
+  authenticateUser,
+  clearUserSession,
   comparePassword,
+  createAccessToken,
   createRefreshToken,
   createSession,
   createUser,
-  generateToken,
+  // generateToken,
   getUserByEmail,
   hashPassword,
 } from "../services/auth.services.js";
@@ -47,9 +53,13 @@ export const postRegister = async (req, res) => {
   const hashedPassword = await hashPassword(password);
 
   const [user] = await createUser({ name, email, password: hashedPassword });
-  console.log(user);
+  console.log("user register", user);
 
-  res.redirect("/login");
+  // res.redirect("/login");
+
+  await authenticateUser({ req, res, user, name, email });
+
+  res.redirect("/");
 };
 
 export const getLoginPage = (req, res) => {
@@ -99,41 +109,24 @@ export const postLogin = async (req, res) => {
 
   // res.cookie("access_token", token);
 
-  //creating a session
-  const session = await createSession(user.id,{
-    ip: req.clientIp,
-    userAgent: req.headers['user-agent']
-  })
+  // we need to create a sessions
+  await authenticateUser({ req, res, user });
 
-  const accessToken = createAccessToken({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    sessionId: session.id,
-  })
-
-    const refreshToken = createRefreshToken(session.id)
-    
-    const baseConfig = {httpOnly: true, secure: true};
-
-    res.cookie("access_token", accessToken,{
-      ...baseConfig,
-      maxAge: ACCESS_TOKEN_EXPIRY
-    })
-
-      res.cookie("refresh_token", accessToken,{
-      ...baseConfig,
-      maxAge: REFRESH_TOKEN_EXPIRY
-    })
   res.redirect("/");
 };
+
+// Do You Need to Set Path=/ Manually?
+//    ✅ cookie-parser and Express automatically set the path to / by default.
 
 export const getMe = (req, res) => {
   if (!req.user) return res.send("Not logged in");
   return res.send(`<h1>Hey ${req.user.name} - ${req.user.email}</h1>`);
 };
 
-export const logoutUser = (req, res) => {
+export const logoutUser = async (req, res) => {
+  await clearUserSession(req.user.sessionId);
+
   res.clearCookie("access_token");
+  res.clearCookie("refresh_token");
   res.redirect("/login");
 };

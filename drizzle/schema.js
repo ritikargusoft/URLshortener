@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { boolean, int, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import {
+  boolean,
+  int,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/mysql-core";
 
 export const shortLinksTable = mysqlTable("short_link", {
   id: int().autoincrement().primaryKey(),
@@ -12,18 +19,18 @@ export const shortLinksTable = mysqlTable("short_link", {
     .references(() => usersTable.id),
 });
 
-export const sessionTable = mysqlTable("sessions",{
-   id: int().autoincrement().primaryKey(),
-    userId: int("user_id")
+export const sessionTable = mysqlTable("sessions", {
+  id: int().autoincrement().primaryKey(),
+  userId: int("user_id")
     .notNull()
-    .references(() => usersTable.id, {onDelete: "cascade"}),
+    .references(() => usersTable.id, { onDelete: "cascade" }),
   valid: boolean().default(true).notNull(),
-userAgent: text("user_agent"),
+  userAgent: text("user_agent"),
 
   ip: varchar({ length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
-})
+});
 
 export const usersTable = mysqlTable("users", {
   id: int().autoincrement().primaryKey(),
@@ -37,7 +44,7 @@ export const usersTable = mysqlTable("users", {
 // A user can have many short links
 export const usersRelation = relations(usersTable, ({ many }) => ({
   shortLink: many(shortLinksTable),
-  session: many(sessionTable)
+  session: many(sessionTable),
 }));
 
 // A short link belongs to a user
@@ -48,10 +55,9 @@ export const shortLinksRelation = relations(shortLinksTable, ({ one }) => ({
   }),
 }));
 
-
-export const sessionRelation = relations(sessionTable, ({one}) => ({
-  user: one(usersTable,{
-    fields:[sessionTable.userId],
-    references: [usersTable.id]
-  })
-}))
+export const sessionRelation = relations(sessionTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [sessionTable.userId],
+    references: [usersTable.id],
+  }),
+}));
