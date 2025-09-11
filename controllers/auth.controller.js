@@ -1,3 +1,4 @@
+import { email } from "zod/v4";
 import {
   authenticateUser,
   clearUserSession,
@@ -9,6 +10,9 @@ import {
   findUserById,
   getAllShortLinks,
   // generateToken,
+  generateRandomToken,
+  insertVerifyEmailToken,
+  createVerifyEmailLink,
   getUserByEmail,
   hashPassword,
 } from "../services/auth.services.js";
@@ -16,6 +20,7 @@ import {
   loginUserSchema,
   registerUserSchema,
 } from "../validators/auth-validator.js";
+import { sendEmail } from "../lib/nodemailer.js";
 
 export const getRegisterPage = (req, res) => {
   if (req.user) return res.redirect("/");
@@ -148,4 +153,46 @@ export const getProfilePage = async (req, res) => {
       links: userShortLinks,
     },
   });
+};
+
+//verify email
+export const getVerifyEmailPage = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+
+  const user = await findUserById(req.user.id);
+
+  if (!user || user.isEmailValid) return res.redirect("/");
+
+  return res.render("auth/verify-email", {
+    email: req.user.email,
+  });
+};
+
+//resend verificationLInk
+export const resendVerificationLink = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+
+  const user = await findUserById(req.user.id);
+  if (!user || user.isEmailValid) return res.redirect("/");
+
+  const randomToken = generateRandomToken();
+
+  await insertVerifyEmailToken({ userId: req.user.id, token: randomToken });
+
+  const verifyEmailLink = await createVerifyEmailLink({
+    email: req.user.email,
+    token: randomToken,
+  });
+
+  sendEmail({
+    to: req.user.email,
+    subject: "Verify your email",
+    html: `
+        <h1>Click the link below to verify your email</h1>
+        <p>You can use this token: <code>${randomToken}</code></p>
+        <a href="${verifyEmailLink}">Verify Email</a>
+      `,
+  }).catch(console.error);
+
+  res.redirect("/verify-email");
 };
