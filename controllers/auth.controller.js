@@ -1,26 +1,34 @@
-import { email } from "zod/v4";
+import {
+  ACCESS_TOKEN_EXPIRY,
+  REFRESH_TOKEN_EXPIRY,
+} from "../config/constants.js";
+import { sendEmail } from "../lib/nodemailer.js";
 import {
   authenticateUser,
   clearUserSession,
+  clearVerifyEmailTokens,
   comparePassword,
   createAccessToken,
   createRefreshToken,
   createSession,
   createUser,
+  createVerifyEmailLink,
   findUserById,
+  findVerificationEmailToken,
+  generateRandomToken,
   getAllShortLinks,
   // generateToken,
-  generateRandomToken,
-  insertVerifyEmailToken,
-  createVerifyEmailLink,
   getUserByEmail,
   hashPassword,
+  insertVerifyEmailToken,
+  sendNewVerifyEmailLink,
+  verifyUserEmailAndUpdate,
 } from "../services/auth.services.js";
 import {
   loginUserSchema,
   registerUserSchema,
+  verifyEmailSchema,
 } from "../validators/auth-validator.js";
-import { sendEmail } from "../lib/nodemailer.js";
 
 export const getRegisterPage = (req, res) => {
   if (req.user) return res.redirect("/");
@@ -61,6 +69,8 @@ export const postRegister = async (req, res) => {
   // res.redirect("/login");
 
   await authenticateUser({ req, res, user, name, email });
+
+  await sendNewVerifyEmailLink({ email, userId: user.id });
 
   res.redirect("/");
 };
@@ -155,8 +165,10 @@ export const getProfilePage = async (req, res) => {
   });
 };
 
-//verify email
+//getVerifyEmailPage
 export const getVerifyEmailPage = async (req, res) => {
+  // if (!req.user || req.user.isEmailValid) return res.redirect("/");
+
   if (!req.user) return res.redirect("/");
 
   const user = await findUserById(req.user.id);
@@ -168,31 +180,38 @@ export const getVerifyEmailPage = async (req, res) => {
   });
 };
 
-//resend verificationLInk
+//resendVerificationLink
 export const resendVerificationLink = async (req, res) => {
   if (!req.user) return res.redirect("/");
-
   const user = await findUserById(req.user.id);
   if (!user || user.isEmailValid) return res.redirect("/");
 
-  const randomToken = generateRandomToken();
-
-  await insertVerifyEmailToken({ userId: req.user.id, token: randomToken });
-
-  const verifyEmailLink = await createVerifyEmailLink({
-    email: req.user.email,
-    token: randomToken,
-  });
-
-  sendEmail({
-    to: req.user.email,
-    subject: "Verify your email",
-    html: `
-        <h1>Click the link below to verify your email</h1>
-        <p>You can use this token: <code>${randomToken}</code></p>
-        <a href="${verifyEmailLink}">Verify Email</a>
-      `,
-  }).catch(console.error);
+  await sendNewVerifyEmailLink({ email: req.user.email, userId: req.user.id });
 
   res.redirect("/verify-email");
+};
+
+// /verifyEmailToken
+
+export const verifyEmailToken = async (req, res) => {
+  const { data, error } = verifyEmailSchema.safeParse(req.query);
+  if (error) {
+    return res.send("Verification link invalid or expired!");
+  }
+
+  // const token = await findVerificationEmailToken(data); // without joins
+  const [token] = await findVerificationEmailToken(data); // with joins
+  console.log("🚀 ~ verifyEmailToken ~ token̥:", token);
+  if (!token) res.send("Verification link invalid or expired!");
+  // 1: token - same
+  // 2: expire
+  // 3: userId - email find
+
+  await verifyUserEmailAndUpdate(token.email);
+  // 1: to find email - vupdate the is emial ValidityState
+
+  // clearVerifyEmailTokens(token.email).catch(console.error);
+  clearVerifyEmailTokens(token.userId).catch(console.error);
+
+  return res.redirect("/profile");
 };
