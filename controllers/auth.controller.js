@@ -1,33 +1,40 @@
-import {
-  ACCESS_TOKEN_EXPIRY,
-  REFRESH_TOKEN_EXPIRY,
-} from "../config/constants.js";
-import { sendEmail } from "../lib/nodemailer.js";
+import { getHtmlFromMjmlTemplate } from "../lib/get-html-from-mjml-template.js";
+import { sendEmail } from "../lib/send-email.js";
 import {
   authenticateUser,
+  clearResetPasswordToken,
   clearUserSession,
   clearVerifyEmailTokens,
   comparePassword,
   createAccessToken,
   createRefreshToken,
+  createResetPasswordLink,
   createSession,
   createUser,
   createVerifyEmailLink,
+  findUserByEmail,
   findUserById,
   findVerificationEmailToken,
   generateRandomToken,
   getAllShortLinks,
+  getResetPasswordToken,
   // generateToken,
   getUserByEmail,
   hashPassword,
   insertVerifyEmailToken,
   sendNewVerifyEmailLink,
+  updateUserByName,
+  updateUserPassword,
   verifyUserEmailAndUpdate,
 } from "../services/auth.services.js";
 import {
+  forgotPasswordSchema,
   loginUserSchema,
   registerUserSchema,
   verifyEmailSchema,
+  verifyPasswordSchema,
+  verifyResetPasswordSchema,
+  verifyUserSchema,
 } from "../validators/auth-validator.js";
 
 export const getRegisterPage = (req, res) => {
@@ -214,4 +221,161 @@ export const verifyEmailToken = async (req, res) => {
   clearVerifyEmailTokens(token.userId).catch(console.error);
 
   return res.redirect("/profile");
+};
+
+//getEditProfilePage
+export const getEditProfilePage = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+
+  const user = await findUserById(req.user.id);
+  if (!user) return res.status(404).send("User not found");
+
+  return res.render("auth/edit-profile", {
+    username: user.name,
+    errors: req.flash("errors"),
+  });
+};
+
+//postEditProfile
+export const postEditProfile = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+
+  const { data, error } = verifyUserSchema.safeParse(req.body);
+  if (error) {
+    const errorMessage = error.errors[0].message;
+    req.flash("errors", errorMessage);
+    return res.redirect("/");
+  }
+  await updateUserByName({ userId: req.user.id, name: data.name });
+
+  return res.redirect("/profile");
+};
+
+//getChangePasswordPage
+export const getChangePasswordPage = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+  return res.render("auth/change-password", {
+    errors: req.flash("errors"),
+  });
+};
+
+//postChangePassword
+export const postChangePassword = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+
+  const { data, error } = verifyPasswordSchema.safeParse(req.body);
+  if (error) {
+    const errorMessage = error.errors[0].message;
+    req.flash("errors", errorMessage);
+    return res.redirect("/change-password");
+  }
+
+  const { currentPassword, newPassword } = data;
+
+  const user = await findUserById(req.user.id);
+  if (!user) {
+    req.flash("errors", "Invalid password");
+    return res.redirect("/change-password");
+  }
+
+  const isPasswordValid = comparePassword(currentPassword, user.password);
+  if (!isPasswordValid) {
+    req.flash("errors", "Current Password that you entered is invalid");
+    return res.redirect("auth/change-password");
+  }
+
+  await updateUserPassword({ userId: user.id, newPassword });
+
+  return res.redirect("/profile");
+};
+
+// /getResetPasswordPage
+
+export const getResetPasswordPage = async (req, res) => {
+  return res.render("auth/forgot-password", {
+    formSubmitted: req.flash("formSubmitted")[0],
+    errors: req.flash("errors"),
+  });
+};
+
+//postForgotPassword
+export const postForgotPassword = async (req, res) => {
+  const { data, error } = forgotPasswordSchema.safeParse(req.body);
+
+  if (error) {
+    const errorMessages = error.errors.map((err) => err.message);
+    req.flash("errors", errorMessages[0]);
+    return res.redirect("/reset-password");
+  }
+
+  const user = await findUserByEmail(data.email);
+
+  if (user) {
+    const resetPasswordLink = await createResetPasswordLink({
+      userId: user.id,
+    });
+
+    const html = await getHtmlFromMjmlTemplate("reset-password-email", {
+      name: user.name,
+      link: resetPasswordLink,
+    });
+
+    sendEmail({
+      to: user.email,
+      subject: "Reset Your Password",
+      html,
+    });
+  }
+
+  req.flash("formSubmitted", true);
+  return res.redirect("/reset-password");
+};
+
+//getResetPasswordTokenPage
+export const getResetPasswordTokenPage = async (req, res) => {
+  const { token } = req.params;
+  const passwordResetData = await getResetPasswordToken(token);
+  if (!passwordResetData) return res.render("auth/wrong-reset-password-token");
+
+  return res.render("auth/reset-password", {
+    formSubmitted: req.flash("formSubmitted")[0],
+    errors: req.flash("errors"),
+    token,
+  });
+};
+
+//! Extract password reset token from request parameters.
+//! Validate token authenticity, expiration, and match with a previously issued token.
+//! If valid, get new password from request body and validate using a schema (e.g., Zod) for complexity.
+//! Identify user ID linked to the token.
+//! Invalidate all existing reset tokens for that user ID.
+//! Hash the new password with a secure algorithm .
+//! Update the user's password in the database with the hashed version.
+//! Redirect to login page or return a success response.
+
+//postResetPasswordToken
+export const postResetPasswordToken = async (req, res) => {
+  const { token } = req.params;
+  const passwordResetData = await getResetPasswordToken(token);
+  if (!passwordResetData) {
+    req.flash("errors", "Password Token is not matching");
+    return res.render("auth/wrong-reset-password-token");
+  }
+
+  const { data, error } = verifyResetPasswordSchema.safeParse(req.body);
+  if (error) {
+    const errorMessages = error.errors.map((err) => err.message);
+    req.flash("errors", errorMessages[0]);
+    res.redirect(`/reset-password/${token}`);
+  }
+
+  const { newPassword } = data;
+
+  const user = await findUserById(passwordResetData.userId);
+
+  await clearResetPasswordToken(user.id);
+
+  await updateUserPassword({ userId: user.id, newPassword });
+
+  return res.redirect("/login");
 };

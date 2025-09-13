@@ -365,3 +365,79 @@ export const sendNewVerifyEmailLink = async ({ userId, email }) => {
     html: htmlOutput,
   }).catch(console.error);
 };
+
+// /updateUserByName
+export const updateUserByName = async ({ userId, name }) => {
+  return await db
+    .update(usersTable)
+    .set({ name: name })
+    .where(eq(usersTable.id, userId));
+};
+
+//updateUserPassword
+export const updateUserPassword = async ({ userId, newPassword }) => {
+  const newHashPassword = await hashPassword(newPassword);
+
+  return await db
+    .update(usersTable)
+    .set({ password: newHashPassword })
+    .where(eq(usersTable.id, userId));
+};
+
+// /findUserByEmail
+export const findUserByEmail = async (email) => {
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, email));
+
+  return user;
+};
+
+//todo steps
+//1: random token ✅
+// 2: convert into hash token ✅
+// 3: clear the user prev. data - delete ✅
+// 4: now we need to insert userid, hashToken ✅
+// 5: return the link (create the link ) ✅
+
+export const createResetPasswordLink = async ({ userId }) => {
+  const randomToken = crypto.randomBytes(32).toString("hex");
+
+  const tokenHash = crypto
+    .createHash("sha256")
+    .update(randomToken)
+    .digest("hex");
+
+  await db
+    .delete(passwordResetTokensTable)
+    .where(eq(passwordResetTokensTable.userId, userId));
+
+  await db.insert(passwordResetTokensTable).values({ userId, tokenHash });
+
+  return `${process.env.FRONTEND_URL}/reset-password/${randomToken}`;
+};
+
+// /getResetPasswordToken
+export const getResetPasswordToken = async (token) => {
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+  const [data] = await db
+    .select()
+    .from(passwordResetTokensTable)
+    .where(
+      and(
+        eq(passwordResetTokensTable.tokenHash, tokenHash),
+        gte(passwordResetTokensTable.expiresAt, sql`CURRENT_TIMESTAMP`)
+      )
+    );
+
+  return data;
+};
+
+// /clearResetPasswordToken
+export const clearResetPasswordToken = async (userId) => {
+  return await db
+    .delete(passwordResetTokensTable)
+    .where(eq(passwordResetTokensTable.userId, userId));
+};
